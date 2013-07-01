@@ -532,22 +532,21 @@ void CUDSSettingsWnd::OnBnOKPressed(){
 				TempReq_CanID = m_omReqCanID.lGetValue();
 				TempResp_CanID = m_omRespCanID.lGetValue();
 
-				if ( StringReqCanID.GetLength() == 8  && /*TempReq_CanID >= 0x01 && */TempReq_CanID <= 0x1FFFFFFF){
-					// Por ahora está incorrecto y debo pasarlo a bit y tomar los valores 
+				if ( StringReqCanID.GetLength() == 8  && TempReq_CanID <= MAX_VALUE_29BIT_ID){
 					ReqCanID = strtoul(StringReqCanID, NULL, 16);
 					UdsProtocolPtr->SourceAddress = (ReqCanID & MASK_SA_ID_29Bits)>>11;
 					UdsProtocolPtr->MsgID = strtoul(StringReqCanID.Right(8), NULL, 16);	
 					UdsProtocolPtr->TargetAddress = (ReqCanID & MASK_TA_ID_29Bits);
-				}else {				   // Isn't a valid CAN ID 
+				}else {									 // Isn't a valid CAN ID 
 					UdsProtocolPtr->SourceAddress = 0x00;
 					UdsProtocolPtr->MsgID = 0x000;
 					UdsProtocolPtr->TargetAddress = 00;
 				}	
 
-				if ( StringRespCanID.GetLength() == 8 && /*TempResp_CanID >= 0x01 &&*/ TempResp_CanID <= 0x1FFFFFFF){
+				if ( StringRespCanID.GetLength() == 8 &&  TempResp_CanID <= MAX_VALUE_29BIT_ID){
 					//ReqCanID = strtoul(StringRespCanID.Right(2), NULL, 16);
 					//UdsProtocolPtr->TargetAddress = ReqCanID;
-					respID = strtoul(StringRespCanID , NULL, 16);   // the StringRespCanID is updated only if the CanID is correct
+					respID = strtoul(StringRespCanID , NULL, 16);						// the StringRespCanID is updated only if the CanID is correct
 				}else {							// Isn't a valid CAN ID 
 					UdsProtocolPtr->SourceAddress = 0x00;
 					UdsProtocolPtr->MsgID = 0x000;
@@ -564,10 +563,10 @@ void CUDSSettingsWnd::OnBnOKPressed(){
 				TempReq_CanID = m_omReqCanID.lGetValue();
 				TempResp_CanID = m_omRespCanID.lGetValue();
 
-				if ( StringReqCanID.GetLength() == 8  && TempReq_CanID <= 0x1FFFFFFF){
+				if ( StringReqCanID.GetLength() == 8  && TempReq_CanID <= MAX_VALUE_29BIT_ID){
 					// Por ahora está incorrecto y debo pasarlo a bit y tomar los valores 
 					ReqCanID = strtoul(StringReqCanID, NULL, 16);
-					UdsProtocolPtr->TargetAddress = (ReqCanID & 0xFF00)>>8;
+					UdsProtocolPtr->TargetAddress = (ReqCanID & MASK_TA_ID_29Bits_J1939)>>8;
 					UdsProtocolPtr->MsgID = strtoul(StringReqCanID.Right(8), NULL, 16);	
 					UdsProtocolPtr->SourceAddress = (ReqCanID & 0xFF);
 				}else {				   // Isn't a valid CAN ID 
@@ -577,7 +576,7 @@ void CUDSSettingsWnd::OnBnOKPressed(){
 					UdsProtocolPtr->TargetAddress = 00;
 				}	
 
-				if ( StringRespCanID.GetLength() == 8 && /*TempResp_CanID >= 0x01 &&*/ TempResp_CanID <= 0x1FFFFFFF){
+				if ( StringRespCanID.GetLength() == 8 &&  TempResp_CanID <= MAX_VALUE_29BIT_ID){
 
 					respID = strtoul(StringRespCanID , NULL, 16);   // the StringRespCanID is updated only if the CanID is correct
 				}else {							// Isn't a valid CAN ID 
@@ -594,11 +593,6 @@ void CUDSSettingsWnd::OnBnOKPressed(){
 	//To verify the legth of the simple messages   
 	fMsgSize = m_omCheckMsgDLC.GetCheck();  
 	FCRespReq = m_omTPNoRespReq.GetCheck();
-	//if(m_omCheckMsgDLC.GetCheck()){ 
-	//	fMsgSize =TRUE;
-	//} else { 
-	//	fMsgSize = FALSE;
-	//}	
 	OnEnChangeP2_TimeOut();
 	UdsProtocolPtr->UpdateFields();
 	OnCbnSelchangeFCLength();

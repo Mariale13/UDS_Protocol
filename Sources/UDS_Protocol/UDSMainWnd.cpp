@@ -508,7 +508,11 @@ void  CUDSMainWnd::OnTimer(UINT_PTR nIDEvent){
 	//Envía TeserPresent 
 	if(nIDEvent ==ID_TIMER_TP && psTxCanMsgUds->m_psTxMsg != NULL) {		//Prepare the message
 
-		psTxCanMsgUds->m_psTxMsg->m_ucEXTENDED= TRUE/*FALSE*/;				// Initial Config
+		if(fInterface == INTERFACE_NORMAL_ISO_29 || fInterface ==INTERFACE_NORMAL_J1939_29){
+			psTxCanMsgUds->m_psTxMsg->m_ucEXTENDED= TRUE;				// Initial Config
+		}else{
+			psTxCanMsgUds->m_psTxMsg->m_ucEXTENDED= FALSE;				// Initial Config
+		}
 		psTxCanMsgUds->m_psTxMsg->m_ucRTR = FALSE;
 		psTxCanMsgUds->m_psTxMsg->m_ucChannel = (UCHAR)m_omComboChannelUDS.GetCurSel()+1;
 		psTxCanMsgUds->m_psTxMsg->m_unMsgID = (int)m_omCanID.lGetValue(); 
