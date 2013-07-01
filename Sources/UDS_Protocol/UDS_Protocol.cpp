@@ -25,32 +25,52 @@ CUDSMainWnd* omMainWnd = NULL;
 CUDS_NegRespMng* NegRespManager = NULL; 
 CUDSSettingsWnd* omSettingsWnd = NULL; 
 CUDS_Protocol* omManagerPtr = NULL;
-bool fWaitLongResponse = FALSE; 
+
+/** Variable used to control if a message received should be shown */
 bool FDontShow =FALSE;		// if it's TRUE the message should not be shown
 							// This variable is used to check if the response corresponds to my request
 
-float Length_Received =0;	// It's the number of bytes received in a long response
+/** It's the number of bytes received in a long response  */
+float Length_Received =0;	
 
-int numberOfTaken;			// It contains the number of Data bytes that can be sent in the current message
+/**  It contains the number of Data bytes that can be sent in the current message */ 
+int numberOfTaken;	
+
 int initialByte;
-int aux;					// Ayuda a controlar el index de i y a diferenciar entre el caso de Extended y Normal addressing
+/** It's used to control the index i according to if it's working on extended or normal addressing  */
+int aux_Finterface;					
 unsigned char abByteArr[64];
+
+/** Corresponds to the STMin received from the flowControlMessage */
 int STMin;					// Corresponds to the STMin received from the flowControlMessage
 int BSize;
 int BSizE;					// Corresponds to the BSize received from the flowControlMessage
 int SizeFC;
 int P2_Time=250;
 int P2_Time_Extended =2000;
-bool FSending = FALSE;			// This variable is used to know if a message has been sent from the UDSMainWnd
+
+/** This variable is used to know if a message has been sent from the UDSMainWnd  */ 
+bool FSending = FALSE;
+
 CString Bytes_to_Show= ("\r\n   1-> ");
-float TotalFrames;   // This variable is used to determinate how much continuos frames will be received
-int respID;   ////correspond to the exact ID of the message received
-int RespMsgID;	 //Corresponds to the value put in the settingWnd if it's extended
-bool fMsgSize = FALSE;		// If TRUE the msg should have 8 bytes always
-bool FCRespReq = FALSE;		// If TRUE the msg should have 8 bytes always
+
+/** This variable is used to determinate how much continuos frames will be received */ 
+float TotalFrames;   
+
+/** it corresponds to the exact ID of the message received    */ 
+int respID; 
+
+/** It Corresponds to the value put in the settingWnd if it's extended	 */ 
+int RespMsgID;
+
+/** If TRUE the msg should have 8 bytes always  */
+bool fMsgSize = FALSE;	
+
+/** If TRUE the msg should have 8 bytes always   */
+bool FCRespReq = FALSE;		
 
 
-int Lear = 1; 
+int BytesShown_Line = 1; 
 int LengthLastFrame;
 CString CurrentService;
 UINT_PTR m_nTimer;
@@ -168,23 +188,23 @@ void CUDS_Protocol::Show_ResponseData(unsigned char psMsg[], unsigned char Datal
 		//Bytes_to_Show= Bytes_to_Show+ ("\r\n       ");				//looks like the consecutive frames
 
 		int intResp;
-		char auxArray[16];
+		//char auxArray[16];
 		for (int ByteCounter = posFirstByte+1; ByteCounter<loc ;ByteCounter++){		  // Solo para mostrar los valores deseados
 			UCHAR TempByte = (psMsg[ByteCounter]) ;
 			int Temp_char2Int =  TempByte;				
 			intResp = sprintf (hex,"%02X ",Temp_char2Int);
 			Bytes_to_Show= Bytes_to_Show+ hex;  
-			Lear++;
+			BytesShown_Line++;
 			numberOfBytes++;
 
-			if (Lear == NUM_BYTES_SHOWN_RESP+1){
+			if (BytesShown_Line == NUM_BYTES_SHOWN_RESP+1){
 				CString CstringNumberOfBytes;
 				CstringNumberOfBytes.Format("%d", numberOfBytes);
 				int i =4;
 				while(i- CstringNumberOfBytes.GetLength()>0){ //for (int i = 4; i- CstringNumberOfBytes.GetLength()>0 ; i--){
 					CstringNumberOfBytes = " "+CstringNumberOfBytes ; 					
 				}
-				Lear = 1; 
+				BytesShown_Line = 1; 
 				//intResp = sprintf (hex,"%03d-> ",numberOfBytes);
 				Bytes_to_Show= Bytes_to_Show+ ("\r\n") +CstringNumberOfBytes +" -> ";
 			
@@ -252,8 +272,8 @@ USAGEMODE HRESULT EvaluateMessage(unsigned char psMsg[],  unsigned char Datalen,
 				Length_Received = Length_Received + psMsg[initialByte+1];	     // The length of the receivedMessage
 				omMainWnd->PrepareFlowControl();		
 				omManagerPtr->Show_ResponseData(psMsg ,Datalen,initialByte+1); // Por ahora esta función está definida en el UDSProtocol pero puede pasar a estar definida en MainWnd
-				TotalFrames = (Length_Received - 6+ aux )/ (7-aux);			// This variable is used to determinate how much continuos frames will be received
-				LengthLastFrame = ((int)Length_Received - 6+ aux )%(7-aux);
+				TotalFrames = (Length_Received - 6+ aux_Finterface )/ (7-aux_Finterface);			// This variable is used to determinate how much continuos frames will be received
+				LengthLastFrame = ((int)Length_Received - 6+ aux_Finterface )%(7-aux_Finterface);
 				omMainWnd->m_omDiagService = NegRespManager->evaluateResp(psMsg ,initialByte+1);
 				omMainWnd->m_omSendButton.EnableWindow(FALSE);
 				m_nTimer = omMainWnd->SetTimer(ID_TIMER_SEND_BUTTON,P2_Time /*TIME_UNABLE_SEND_BUTTON*/, NULL);
@@ -271,7 +291,7 @@ USAGEMODE HRESULT EvaluateMessage(unsigned char psMsg[],  unsigned char Datalen,
 				omMainWnd->KillTimer(ID_TIMER_SEND_BUTTON);
 
 			}else if(TotalFrames<0){				 //It enters here when the last frame has less than 7/6 bytes of data
-				Datalen = LengthLastFrame+1+aux;	
+				Datalen = LengthLastFrame+1+aux_Finterface;	
 				FSending = FALSE;					 //Stops showing the bytes in the mainWnd
 				omMainWnd->KillTimer(ID_TIMER_SEND_BUTTON);
 				omMainWnd->m_omSendButton.EnableWindow(TRUE); 
@@ -451,7 +471,7 @@ void CUDS_Protocol::StartTimer_Disable_Send()
 /**********************************************************************************************************
  Function Name  :   StartTimer_Disable_Send
  Description    :   This function is called from the CUDS_NegRespMng to able the SEND button and to
-					fill the timer					
+					kill the timer					
  Member of      :   CUDS_Protocol
  Author(s)      :   Sánchez A
  Date Created   :   11.06.2013

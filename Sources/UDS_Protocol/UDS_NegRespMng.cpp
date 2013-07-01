@@ -91,7 +91,7 @@ CString CUDS_NegRespMng::evaluateResp(unsigned char arrayMsg[],int Byte2Init ){
 			if( arrayMsg[Byte2Init+3] == 0x78){
 				FSending = TRUE;          // Continue showing the bytes 
 				UdsProtocolPtr2->StartTimer_Disable_Send();  // Start the timer again and disable SEND button 
-				Lear = NUM_BYTES_SHOWN_RESP-2;
+				BytesShown_Line = NUM_BYTES_SHOWN_RESP-2;
 			}
 			return VerifyNegResponse(arrayMsg[Byte2Init+3]);			 // arrayMsg[Byte2Init+3] will indicate wich message'll be shown in the RespDescription section 
 

@@ -91,7 +91,7 @@ END_MESSAGE_MAP()
  Function Name  :   StartTimer
   Input(s)      :   -
   Output        :	-
- Description    :   This function is called to star the timer used to send the Tester Present
+ Description    :   This function is called to start the timer used to send the Tester Present
  Member of      :   CUDSMainWnd
 
  Author(s)      :   Sánchez A
@@ -105,7 +105,7 @@ UINT CUDSMainWnd::StartTimer(/*LPVOID alo*/){
 
 /**********************************************************************************************************
  Function Name  :   SendFirstFrame
-  Input(s)      :   omByteStr contains the bytes that has to be sent in the first frame of the long request
+ Input(s)       :   omByteStr contains the bytes that has to be sent in the first frame of the long request
 					abByteArr[] is the array where the data should be put to be sent
 					psTxCanMsgUds is the general structure of the message
 					FInterface indicates the interface selected in the SettingsWnd
@@ -164,7 +164,7 @@ int CUDSMainWnd::SendFirstFrame(CString omByteStr, unsigned char abByteArr[], mP
 					psTxCanMsgUds is the general structure of the message
 					FInterface indicates the interface selected in the SettingsWnd
  Output         :	-
- Description    :   This function send the continuos frames of a long request. It sends severals messages 
+ Description    :   This function sends the continuos frames of a long request. It sends several messages 
 					until the BSize parameter has been reached. 
  Member of      :   CUDSMainWnd
 
@@ -181,7 +181,7 @@ void CUDSMainWnd::SendContinuosFrames( unsigned char abByteArr[],mPSTXSELMSGDATA
 	int numberofFrames =0;						// It will indicate how many multiples frames have been sent
 	int c_numberOfTaken = numberOfTaken+2;		// The consecutive Messages will contain one byte more that the FirstFrame 
 	
-	int i = aux + c_numberOfTaken/2;			// aux it's used to indicate that i must be bigger if we're in extended Addressing
+	int i = aux_Finterface + c_numberOfTaken/2;			// aux_Finterface it's used to indicate that i must be bigger if we're in extended Addressing
 	
 	while (DatatoSend.GetLength()){				// While there is remaining data that has to be sent
 		omByteStrTemp = DatatoSend.Left(c_numberOfTaken);	//I take the part of the message that is going to be sent in the current Frame 
@@ -213,9 +213,9 @@ void CUDSMainWnd::SendContinuosFrames( unsigned char abByteArr[],mPSTXSELMSGDATA
 		c_unPreviousTime = -1;				//ReStart the variables for the timmings 
 		c_dDiffTime = 0;	
 
-		i = aux + c_numberOfTaken/2;				// i must be a bigger numeber in the case of extended addressing-> aux to control this.
+		i = aux_Finterface + c_numberOfTaken/2;				// i must be a bigger numeber in the case of extended addressing-> aux_Finterface to control this.
 		if (TotalLength*2<c_numberOfTaken){			// It only enters here once, at the end when the last message of the multiple frames has to be sent when
-			i = TotalLength+aux;					// the number of frames that has to be sent is less than c_numberOfTaken
+			i = TotalLength+aux_Finterface;					// the number of frames that has to be sent is less than c_numberOfTaken
 		}
 	}
    	m_omSendButton.EnableWindow(TRUE);		// It only enters here when it has sent all the msg
@@ -451,7 +451,7 @@ void CUDSMainWnd::PrepareDiagnosticMessage(CString omByteStr,mPSTXSELMSGDATA psT
  Input(s)       :   -
  Output         :	-
  Description    :   This function is called by framework when user wants to Transmit a  message 
-					It Filters the message so only the msg with a propert SA,TA and CANId can be sent
+					It Filters the message so only the msg with a proper SA,TA and CANId can be sent
  Member of      :   CUDSMainWnd
 
  Author(s)      :   Sánchez A
@@ -462,7 +462,7 @@ void CUDSMainWnd::OnBnClickedSendUD(){
 	KillTimer(ID_TIMER_TP);	   //Added to kill the timer everyTime I've pressed the SEND button
 	FSending = TRUE;		// This flag is used to know if a message has been sent from the UDSMainWnd
 	Bytes_to_Show= ("\r\n   1 -> ");			//Inicialización de la sección de ResponseData
-	Lear = 1;	m_abDatas = " ";
+	BytesShown_Line = 1;	m_abDatas = " ";
 	m_omDiagService = initialEval(m_omMsgDataEdit);
 	m_omBytes.vSetValue(0);
 	CurrentService = m_omMsgDataEdit.Left(NO_OF_CHAR_IN_BYTE);
@@ -524,7 +524,7 @@ void  CUDSMainWnd::OnTimer(UINT_PTR nIDEvent){
 		if(fMsgSize){					// how many bytes has the flow Control? 
 			psTxCanMsgUds->m_psTxMsg->m_ucDataLen = 8;
 		} else {
-			psTxCanMsgUds->m_psTxMsg->m_ucDataLen = aux + 3;
+			psTxCanMsgUds->m_psTxMsg->m_ucDataLen = aux_Finterface + 3;
 		}
 		if(FCRespReq) psTxCanMsgUds->m_psTxMsg->m_ucData[initialByte+2]= 0x80;				// if NoResponse Required is activated
 		SendSimpleDiagnosticMessage();
@@ -638,7 +638,7 @@ void CUDSMainWnd::OnEnChangeData(){
 	UINT Data_Length = (LengthStr/2) + LengthStr%2;; 
 	m_stringEditDLC = (LengthStr/2) + LengthStr%2;
 	//Bytes_to_Show= ("\r\n->    1");			//Inicialización de la sección de ResponseData
-	Lear = 1;
+	BytesShown_Line = 1;
 	m_abDatas = " ";
 	m_omDiagService = " ";
 	m_omBytes.vSetValue(0);
@@ -682,6 +682,7 @@ void CUDSMainWnd::OnEnChangeTA(){
 }
 //________________________________________________________________________________________________________________________________________________________________
 //________________________________________________________________________________________________________________________________________________________________
+//This function is called to set in the UDS_Main_Window the value of the CanID editor Box
 
 void CUDSMainWnd::setValue(){	     
 
@@ -697,8 +698,6 @@ void CUDSMainWnd::setValue(){
 		case INTERFACE_NORMAL_ISO_29:
 			{	
 				if(	SourceAddress>0x7FF) m_omSourceAddress.vSetValue(000);		// The SA cannot be bigger than 0x7FF
-				//UINT maria =(SourceAddress&0x7FF)<<11; 
-				//UINT mariaA = CanID&NEG_MASK_SA_ID_29Bits;
 				MsgID = ((CanID & NEG_MASK_SA_ID_29Bits) + (SourceAddress<<11));
 				CanID = MsgID;
 				m_omCanID.vSetValue(MsgID);
@@ -842,7 +841,7 @@ void* CUDSMainWnd::pGetDILInterfacePtr()
 
 //________________________________________________________________________________________________________________________________________________________________
 //________________________________________________________________________________________________________________________________________________________________
-
+/** This function is called from the Mainfrm when the user has changed the channel selection */
 void CUDSMainWnd::vUpdateChannelIDInfo()
 {
 	m_omComboChannelUDS.ResetContent();
@@ -908,13 +907,11 @@ int CUDSMainWnd::nCalculateCurrTime(BOOL bFromDIL)      // Calculates the differ
 //________________________________________________________________________________________________________________________________________________________________
 //________________________________________________________________________________________________________________________________________________________________
 
-void CUDSMainWnd::CalculateDiffTime(void)			//esta función debería estar implementada en otra clase
+void CUDSMainWnd::CalculateDiffTime(void)			
 {	
 	if(c_unPreviousTime != -1 )
 	{
 		c_dDiffTime         = nCalculateCurrTime(FALSE) - c_unPreviousTime;
-		//c_unPreviousTime += static_cast<UINT>(c_dDiffTime);
-		//c_dDiffTime         = c_dDiffTime /*/ defDIV_FACT_FOR_SECOND*/;
 	}
 	else
 	{

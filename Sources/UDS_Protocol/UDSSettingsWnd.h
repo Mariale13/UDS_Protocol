@@ -6,17 +6,26 @@
 #include "Utility/RadixEdit.h"
 #include "DataTypes/UDS_DataTypes.h"
 
+/**  It contains the number of Data bytes that can be sent in the current message */ 
 extern int numberOfTaken;
+
 extern int initialByte;
-extern int aux;					// Ayuda a controlar el index de i y a diferenciar entre el caso de Extended y Normal addressing
-extern int STMin;				// Corresponds to the STMin received from the flowControlMessage
+/** It's used to control the index i according to if it's working on extended or normal addressing  */
+extern int aux_Finterface;	
+/** Corresponds to the STMin received from the flowControlMessage */
+extern int STMin;
+
 extern int BSize;
+
 extern int SizeFC;
 extern int P2_Time;
 extern int P2_Time_Extended;
 extern int S3_Client; 
-extern int respID;   ////correspond to the exact ID of the message received
-extern int RespMsgID;	 //Corresponds to the value put in the settingWnd if it's extended
+/** it corresponds to the exact ID of the message received    */ 
+extern int respID;   
+
+/** It Corresponds to the value put in the settingWnd if it's extended	 */ 
+extern int RespMsgID;	 
 extern bool fMsgSize;	// If TRUE the msg should have 8 bytes always 
 extern bool	FCRespReq;	  // If TRUE TP will be ...0x3E 0x80 (No response required
 
@@ -68,18 +77,44 @@ public:
 
 
 
-
+	/**
+	* This function is called to initialize the settings Window
+	*/
 	void vInitializeUDSSettingsfFields();
+
+	/**
+	* This function is called by the framework when the user selects an option in the 
+	* interface combo box. 
+	*/
 	void OnCbnSelchangeComboInterface();
+	/**
+	\brief It saves all the settings settled previously in the settings window
+	* This function is called by the framework when the user press the OK buttom in the
+	* Settings Window to save all the changes made  previously. 
+	*/
 	void CUDSSettingsWnd::OnBnOKPressed();
+
+	/**
+	\brief It closes the settings window without saving the changes
+	*/
 	void CUDSSettingsWnd::OnBnCancelPressed();
 
 	void CUDSSettingsWnd::OnEnChangeSTmin();
 	void CUDSSettingsWnd::OnSaveSTmin();
 
+	/**
+	\brief It takes the value of the Flow Control Length combo box 
+	* This function is called when the user press the OK button and it saves the new value
+	* of  FCLength
+	*/
 	void CUDSSettingsWnd::OnCbnSelchangeFCLength();
+
+	/**
+	\brief It takes the value of the parameter Bsize
+	* This function is called when the user press the OK button and it saves the new value
+	* of the ISO TP parameter BSize 
+	*/
 	void CUDSSettingsWnd::OnEnChangeBSize();
-	//void CUDSSettingsWnd::OnChkbOnFlowC8();
 	void CUDSSettingsWnd::OnEnChangeP2_TimeOut();
 	void CUDSSettingsWnd::OnEnChangeP2_Extended();
 	void CUDSSettingsWnd::OnEnChangeS3_Client();

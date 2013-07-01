@@ -4,10 +4,14 @@
 #include "UDS_Protocol.h"	  
 #include "UDS_Resource.h"
 
-extern int Lear; 
+extern int BytesShown_Line; 
 extern int initialByte;
-extern CString CurrentService;
+extern CString CurrentService;   
+
+/** This variable is used to know if a message has been sent from the UDSMainWnd  */ 
 extern bool FSending;
+
+/** Variable used to control if a message received should be shown */
 extern bool FDontShow;		 // if it's TRUE the message should not be sent
 							// This variable is used to check if the response corresponds to my request
 

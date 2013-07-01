@@ -168,16 +168,20 @@ BEGIN_MESSAGE_MAP(CUDSSettingsWnd, CDialog)
 	ON_BN_CLICKED(ID_CANCEL, OnBnCancelPressed)
 	ON_EN_UPDATE( IDC_STmin, OnEnChangeSTmin) 
 
-	
-	//ON_WM_CLOSE()
-
 END_MESSAGE_MAP()	
 
-//________________________________________________________________________________________________________________________________________________________________
-//________________________________________________________________________________________________________________________________________________________________
+/**********************************************************************************************************
+ Function Name  :   OnEnChangeBSize
+ Input(s)       :   -
+ Output         :	-
+ Description    :   This function is called when the user press the OK button and it saves the new value
+					of the ISO TP parameter BSize 
+ Member of      :   CUDSSettingsWnd
+ Author(s)      :   Sánchez A
+**********************************************************************************************************/
 
 void CUDSSettingsWnd::OnEnChangeBSize(){
-	UpdateData();							 // función para actualizar los datos
+	UpdateData();							 
 	BSize = m_BSize.lGetValue();
 	if   ( !Temp_BSize.GetLength()){		 //in the case that the BSize Box is empty when OK botton has been pressed 
 		Temp_BSize = "0"; 
@@ -185,14 +189,21 @@ void CUDSSettingsWnd::OnEnChangeBSize(){
 	}
 }
 
-//________________________________________________________________________________________________________________________________________________________________
-//________________________________________________________________________________________________________________________________________________________________
+/**********************************************************************************************************
+ Function Name  :   OnCbnSelchangeFCLength
+ Input(s)       :   -
+ Output         :	-
+ Description    :   This function is called when the user press the OK button and it saves the new value
+					of the FCLength
+ Member of      :   CUDSSettingsWnd
+ Author(s)      :   Sánchez A
+**********************************************************************************************************/
 
 void CUDSSettingsWnd::OnCbnSelchangeFCLength(){
 	switch(m_omFCLength.GetCurSel() ){
 		case 0:
 		{
-			SizeFC=3+aux;
+			SizeFC=3+aux_Finterface;
 		}
 		break;
 		case 1:
@@ -205,7 +216,6 @@ void CUDSSettingsWnd::OnCbnSelchangeFCLength(){
 		break; 			
 	}
 }
-
 //________________________________________________________________________________________________________________________________________________________________
 //________________________________________________________________________________________________________________________________________________________________
 
@@ -264,13 +274,20 @@ BOOL CUDSSettingsWnd::OnInitDialog(){
 	return TRUE;
 }
 
-//________________________________________________________________________________________________________________________________________________________________
-//________________________________________________________________________________________________________________________________________________________________
+/**********************************************************************************************************
+ Function Name  :   vInitializeUDSSettingsfFields
+ Input(s)       :   -
+ Output         :	-
+ Description    :   This function is called to initialize the settings Window
+ Member of      :   CUDSSettingsWnd
+
+ Author(s)      :   Sánchez A
+**********************************************************************************************************/
 
 void CUDSSettingsWnd::vInitializeUDSSettingsfFields(){
 
 	m_omReqCanID.vSetBase(BASE_HEXADECIMAL);
-	m_omRespCanID.vSetBase(BASE_HEXADECIMAL);   //Pendiente asunto de como avisar que es Hexa
+	m_omRespCanID.vSetBase(BASE_HEXADECIMAL);   
 	
 	m_omReqCanID. LimitText(3);
    	m_omRespCanID. LimitText(3);  
@@ -279,20 +296,20 @@ void CUDSSettingsWnd::vInitializeUDSSettingsfFields(){
 	m_omRespCanID.vSetSigned(false);
 
 	m_omReqBroadcAddress.vSetBase(BASE_HEXADECIMAL);
-	m_omReqBroadcAddress.vSetSigned(false); // Verificar por que a TRUE? 
-	m_omReqBroadcAddress.LimitText(3); //Esa correcto verdad! 
+	m_omReqBroadcAddress.vSetSigned(false); 
+	m_omReqBroadcAddress.LimitText(3); 
 
 	m_omRespBroadcAddress.vSetBase(BASE_HEXADECIMAL);
-	m_omRespBroadcAddress.vSetSigned(false); // Verificar por ue a TRUE? 
-	m_omRespBroadcAddress. LimitText(3); //Esa correcto verdad! 
+	m_omRespBroadcAddress.vSetSigned(false); 
+	m_omRespBroadcAddress. LimitText(3); 
 
 	m_omReqBaseAddress.vSetBase(BASE_HEXADECIMAL);
-	m_omReqBaseAddress.vSetSigned(false); // Verificar por ue a TRUE? 
-	m_omReqBaseAddress. LimitText(3); //Esa correcto verdad! 
+	m_omReqBaseAddress.vSetSigned(false); 
+	m_omReqBaseAddress. LimitText(3); 
 
 	m_omRespBaseAddress.vSetBase(BASE_HEXADECIMAL);
-	m_omRespBaseAddress.vSetSigned(false); // Verificar por ue a TRUE? 
-	m_omRespBaseAddress.LimitText(3); //Esa correcto verdad! 
+	m_omRespBaseAddress.vSetSigned(false); 
+	m_omRespBaseAddress.LimitText(3); 
 
 	m_STMin.vSetBase(BASE_HEXADECIMAL);
 	m_STMin.LimitText(2);
@@ -325,21 +342,25 @@ void CUDSSettingsWnd::vInitializeUDSSettingsfFields(){
 	vPopulateDiagnosticStandardComboBox(sg_asSupportedDiagStandard,1, m_omStdDiag);	  //Changed to modify only the Diagnostic Standard box
     vPopulateFCLength(m_omFCLength);
 	m_omFCLength.SetCurSel(0);
-	m_omStdDiag.SetCurSel(0);		// Hace falta una función como "OnCbnSelchangeComboInterface()" que haga algo con la opción seleccionada en el Diagnostic Standard 
+	m_omStdDiag.SetCurSel(0);	
 	m_omInterface.SetCurSel(0);
 
 	OnCbnSelchangeComboInterface();
 	Prev_InterfaceIndex = 0;
 	OnBnOKPressed();
-
-	//m_omRespBaseAddress.vSetValue( TempResp_BaseAddress);	 // Initialize of this values
-	//m_omReqBaseAddress.vSetValue(TempReq_BaseAddress);
-
-
 }
 
-//________________________________________________________________________________________________________________________________________________________________
-//________________________________________________________________________________________________________________________________________________________________
+
+/*******************************************************************************************************************
+ Function Name  :   OnCbnSelchangeComboInterface
+ Input(s)       :   -
+ Output         :	-
+ Description    :   This function is called by the framework when the user selects
+					 an option in the interface combo box. 
+ Member of      :   CUDSSettingsWnd
+
+ Author(s)      :   Sánchez A
+*******************************************************************************************************************/
 
 void CUDSSettingsWnd::OnCbnSelchangeComboInterface()
 {
@@ -456,20 +477,29 @@ void CUDSSettingsWnd::OnCbnSelchangeComboInterface()
 	UpdateData(false);  // función para actualizar los datos 
 }
 
-//________________________________________________________________________________________________________________________________________________________________
-//________________________________________________________________________________________________________________________________________________________________
+
+/*******************************************************************************************************************
+ Function Name  :   OnBnOKPressed
+ Input(s)       :   -
+ Output         :	-
+ Description    :  This function is called by the framework when the user press the OK buttom in the
+				   Settings Window to save all the changes made  previously.  
+ Member of      :  CUDSSettingsWnd
+
+ Author(s)      :  Sánchez A
+*******************************************************************************************************************/
 
 void CUDSSettingsWnd::OnBnOKPressed(){
 
-	UpdateData();  // función para actualizar los datos 
+	UpdateData(); 
 	Prev_InterfaceIndex = m_nInterfaceIndex;
-	UdsProtocolPtr->fInterface = sg_asSupportedInterface[m_nInterfaceIndex].m_eType;  //Lo coloco acá para modificar cosas en el MainWnd 
+	UdsProtocolPtr->fInterface = sg_asSupportedInterface[m_nInterfaceIndex].m_eType;  
 	switch (UdsProtocolPtr->fInterface){ 
 		case INTERFACE_NORMAL_11:			//In this case I'm changing only the CANID
 			{
 				numberOfTaken=12;	
 				initialByte=0;
-				aux = 0; 
+				aux_Finterface = 0; 
 
 				TempReq_CanID = m_omReqCanID.lGetValue();
 				TempResp_CanID = m_omRespCanID.lGetValue();
@@ -488,21 +518,18 @@ void CUDSSettingsWnd::OnBnOKPressed(){
 					ReqCanID = strtoul(StringRespCanID.Right(2), NULL, 16);
 					UdsProtocolPtr->TargetAddress = ReqCanID;
 					respID = strtoul(StringRespCanID , NULL, 16);   // the StringRespCanID is updated only if the CanID is correct
-					// Deberia guardar este valor en alguna parte para 
-					//luego verificar el flow control
 				}else {							// Isn't a valid CAN ID 
 					UdsProtocolPtr->SourceAddress = 0x00;
 					UdsProtocolPtr->MsgID = 0x000;
 					UdsProtocolPtr->TargetAddress = 00;
 				}	
-				//UdsProtocolPtr->UpdateFields();   Esto debe hacerse al final!! 
 			}
 			break;
 		case INTERFACE_EXTENDED_11:
 			{
 				numberOfTaken = 10;
 				initialByte =1;
-				aux = 1;
+				aux_Finterface = 1;
 				TempResp_BaseAddress = m_omRespBaseAddress.lGetValue();
 				TempReq_BaseAddress = m_omReqBaseAddress.lGetValue();
 
@@ -510,24 +537,20 @@ void CUDSSettingsWnd::OnBnOKPressed(){
 					UdsProtocolPtr->MsgID = strtoul(StringReqBaseAddress.Left(3), NULL, 16);
 				}else{
 					UdsProtocolPtr->MsgID = 0x000; 
-					//UdsProtocolPtr->fInterface = INTERFACE_NORMAL_11;
 				}
 
 				if ( StringRespBaseAddress.GetLength()== 3 && TempResp_BaseAddress>=0x100 && TempReq_BaseAddress<=0xF00){
-					//UdsProtocolPtr->MsgID = strtoul(StringReqBaseAddress.Left(3), NULL, 16);
-					// Aqui no se que debo hacer con este valor
 					RespMsgID= strtoul( StringRespBaseAddress, NULL, 16);  
 				}else{
 					UdsProtocolPtr->MsgID = 0x000;
-					//UdsProtocolPtr->fInterface = INTERFACE_NORMAL_11;
 				}
 			}
 			break;
-		case INTERFACE_NORMAL_ISO_29:			//In this case I'm changing only the CANID
+		case INTERFACE_NORMAL_ISO_29:					//In this case I'm changing only the CANID
 			{
 				numberOfTaken=12;	
 				initialByte=0;
-				aux = 0; 
+				aux_Finterface = 0; 
 
 				TempReq_CanID = m_omReqCanID.lGetValue();
 				TempResp_CanID = m_omRespCanID.lGetValue();
@@ -558,18 +581,17 @@ void CUDSSettingsWnd::OnBnOKPressed(){
 			{
 				numberOfTaken=12;	
 				initialByte=0;
-				aux = 0; 
+				aux_Finterface = 0; 
 
 				TempReq_CanID = m_omReqCanID.lGetValue();
 				TempResp_CanID = m_omRespCanID.lGetValue();
 
 				if ( StringReqCanID.GetLength() == 8  && TempReq_CanID <= MAX_VALUE_29BIT_ID){
-					// Por ahora está incorrecto y debo pasarlo a bit y tomar los valores 
 					ReqCanID = strtoul(StringReqCanID, NULL, 16);
 					UdsProtocolPtr->TargetAddress = (ReqCanID & MASK_TA_ID_29Bits_J1939)>>8;
 					UdsProtocolPtr->MsgID = strtoul(StringReqCanID.Right(8), NULL, 16);	
 					UdsProtocolPtr->SourceAddress = (ReqCanID & 0xFF);
-				}else {				   // Isn't a valid CAN ID 
+				}else {								 // Isn't a valid CAN ID 
 
 					UdsProtocolPtr->SourceAddress = 0x00;
 					UdsProtocolPtr->MsgID = 0x000;
@@ -601,8 +623,16 @@ void CUDSSettingsWnd::OnBnOKPressed(){
 	OnEnChangeS3_Client();
 }
 
-//________________________________________________________________________________________________________________________________________________________________
-//________________________________________________________________________________________________________________________________________________________________
+
+/*******************************************************************************************************************
+ Function Name  :   OnBnCancelPressed
+ Input(s)       :   -
+ Output         :	-
+ Description    :  It closes the settings window without saving the changes 
+ Member of      :  CUDSSettingsWnd
+
+ Author(s)      :  Sánchez A
+*******************************************************************************************************************/
 
 void CUDSSettingsWnd::OnBnCancelPressed(){
 
@@ -614,23 +644,18 @@ void CUDSSettingsWnd::OnBnCancelPressed(){
 			{
 				numberOfTaken=12;	
 				initialByte=0;
-				aux = 0; 
+				aux_Finterface = 0; 
 				StringReqBaseAddress = " ";
 				StringRespBaseAddress = " ";
 				UpdateData(false);  // función para actualizar los datos 
 				m_omReqCanID.vSetValue(TempReq_CanID);
 				m_omRespCanID.vSetValue(TempResp_CanID);
 
-				//m_omRespBaseAddress.vSetValue( TempResp_BaseAddress);
-				//m_omReqBaseAddress.vSetValue(TempReq_BaseAddress);
 				m_omReqCanID.SetReadOnly(FALSE);		  
 				m_omRespCanID.SetReadOnly(FALSE);
 
 				m_omReqBaseAddress.SetReadOnly(TRUE);
 				m_omRespBaseAddress.SetReadOnly(TRUE);
-
-				//m_omRespBroadcAddress.SetReadOnly(TRUE);
-				//m_omReqBroadcAddress.SetReadOnly(TRUE);	
 
 				m_omCheckMsgDLC.SetCheck(BST_CHECKED);
 				m_omFCLength.SetCurSel(1);
@@ -640,24 +665,17 @@ void CUDSSettingsWnd::OnBnCancelPressed(){
 			{
 				numberOfTaken = 10;
 				initialByte =1;
-				aux = 1;
+				aux_Finterface = 1;
 				StringRespCanID= " ";
 				StringReqCanID= " ";
-				UpdateData(false);  // función para actualizar los datos 
+				UpdateData(false);   
 				m_omRespBaseAddress.vSetValue( TempResp_BaseAddress);
 				m_omReqBaseAddress.vSetValue(TempReq_BaseAddress);
-				//m_omReqCanID.vSetValue(TempReq_CanID);
-				//m_omRespCanID.vSetValue(TempResp_CanID);
-
-
 				m_omReqCanID.SetReadOnly(TRUE);
 				m_omRespCanID.SetReadOnly(TRUE);
 
 				m_omReqBaseAddress.SetReadOnly(FALSE);
 				m_omRespBaseAddress.SetReadOnly(FALSE);
-
-				//m_omRespBroadcAddress.SetReadOnly(TRUE);
-				//m_omReqBroadcAddress.SetReadOnly(TRUE);
 
 				m_omCheckMsgDLC.SetCheck(BST_UNCHECKED);
 				m_omFCLength.SetCurSel(0);
@@ -669,8 +687,6 @@ void CUDSSettingsWnd::OnBnCancelPressed(){
 	//To verify the legth of the simple messages   
 
 	if (fMsgSize) m_omCheckMsgDLC.SetCheck( BST_CHECKED); 
-	//fMsgSize = m_omCheckMsgDLC.GetCheck();  
-
 	FCRespReq = m_omTPNoRespReq.GetCheck();
 	P2TimeOut.vSetValue( P2_Time);	// To save the previous P2Time Value
 
@@ -679,20 +695,11 @@ void CUDSSettingsWnd::OnBnCancelPressed(){
 	}else{
 		m_omFCLength.SetCurSel(0);	
 	}
-
 	m_STMin.vSetValue(SSTMin);
-	//OnEnChangeSTmin();
-
 	m_BSize.vSetValue(BSize);
-
-	//OnEnChangeBSize();
 	m_S3Client.vSetValue(S3_Client);
-
-
 	this->ShowWindow(SW_HIDE);
 
 }
-
-
 //________________________________________________________________________________________________________________________________________________________________
 //________________________________________________________________________________________________________________________________________________________________

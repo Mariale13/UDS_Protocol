@@ -1,5 +1,4 @@
 
-
 /**
  * \file      UDS_Protocol.h
  * \brief     Interface file for CUDS_Protocol class
@@ -41,34 +40,57 @@ public:
      */
 	CUDS_Protocol();
 
-	void  FormPadre();
+	//void  FormPadre();
 
-	UINT SourceAddress;
-
+	UINT SourceAddress;	
 	UINT TargetAddress;
-
 	INT TypeofControl;
 	UINT MsgID;
 	UDS_INTERFACE fInterface ;
-	int numberOfBytes;	// This variable will be used to set the number of bytes at the beginning of the row of bytes in the responseData section
+
+	/**  This variable will be used to set the number of bytes at the beginning of the row of bytes in the responseData section	  */ 
+	int numberOfBytes;	
 
 
-	// Overrides
-public:
 	virtual BOOL InitInstance();
-	void CUDS_Protocol::UpdateFields();
-	TYPE_OF_FRAME CUDS_Protocol::getFrameType(unsigned char FirstByte);
-	void CUDS_Protocol::StartTimer_Disable_Send();
-	void CUDS_Protocol::KillTimer_Able_Send()  ;
 
+	/**
+	* This function is called from the SettingsWnd to save all the values tha were settled 
+	* in the settings Window. This function also sets some values in the MainWnd such as 
+	* SA, TA,CANId
+	*/ 
+	void CUDS_Protocol::UpdateFields();
+
+	/**
+	 * \brief     It returns the type of frame that was received
+	 * This function is called to analize the  received	response 
+     */	 
+
+	TYPE_OF_FRAME CUDS_Protocol::getFrameType(unsigned char FirstByte);
+
+	 /**
+	 * \brief     Start the timer that enable the SEND button
+	 * This function is called  to disable the SEND button and to
+	 * start the default timer. It enters here when a new message 
+	 * cannot be sent because the previous one hasn't been transmited 
+	 * completely or because a long response is being received. 
+     */
+	void CUDS_Protocol::StartTimer_Disable_Send();
+
+	 /**
+	 * \brief     Kill the timer that enable the SEND button
+	 * This function is called to able the SEND button and to
+	 * kill the timer. It only enters here when the time to wait for a response from the ECU 
+	 * has passed and no response has been received
+     */		
+	void CUDS_Protocol::KillTimer_Able_Send();	
 
     /**
+	 * \brief     Show the response data bytes.
 	 * This function is called by EvaluateMessage to show in the Response Data section 
-	 *	he bytes received in the bus as response of a request sent from the UDS tool.
+	 * the bytes received in the bus as response of a request sent from the UDS tool.
      */
-
 	void CUDS_Protocol::Show_ResponseData(unsigned char psMsg[], unsigned char Datalen , int posFirstByte);
-
 
 	DECLARE_MESSAGE_MAP()
 };

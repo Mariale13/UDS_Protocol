@@ -7,14 +7,16 @@
 #include "DataTypes/UDS_DataTypes.h"
 #include "DataTypes/MsgBufFSE.h"
 
-//#include "include/struct_can.h"
-//#include "Application/Struct.h"
-//int P2_Time=250;
-//#include "UDSWnd_Defines.h"
+/**  It contains the number of Data bytes that can be sent in the current message */ 
 extern int numberOfTaken;
+
 extern int initialByte;
-extern int aux;					// Ayuda a controlar el index de i y a diferenciar entre el caso de Extended y Normal addressing
-extern int STMin;				// Corresponds to the STMin received from the flowControlMessage
+
+/** It's used to control the index i according to if it's working on extended or normal addressing  */
+extern int aux_Finterface;	
+
+/** Corresponds to the STMin received from the flowControlMessage */
+extern int STMin;				
 extern int SSTMin;
 extern int BSize;
 extern int BSizE;
@@ -22,12 +24,18 @@ extern int SizeFC;
 extern int P2_Time;
 extern int P2_Time_Extended;
 extern CString Bytes_to_Show;
+
+/** This variable is used to know if a message has been sent from the UDSMainWnd  */ 
 extern bool FSending;
+
+/** It Corresponds to the value put in the settingWnd if it's extended	 */ 
 extern int RespMsgID;
-extern int respID;   //correspond to the exact ID of the message received
+
+/** corresponds to the exact ID of the message received    */ 
+extern int respID;   
 extern bool fMsgSize;	// If TRUE the msg should have 8 bytes always 
 extern bool	FCRespReq;	 // If TRUE TP will be ...0x3E 0x80 (No response required
-extern int Lear; 
+extern int BytesShown_Line; 
 extern CString CurrentService;
 extern UINT_PTR m_nTimer;
 
@@ -39,9 +47,15 @@ public:
 	CUDSMainWnd(UINT SA, UINT TA , UDS_INTERFACE fInterface,UINT CanId, CWnd* pParent =NULL );   // standard constructor
 	virtual ~CUDSMainWnd();
 
-	CString DatatoSend;			// It will containt all the remaining bytes that has to be sent in long requests
+	/** 
+	This variable contains all the remaining bytes that has to be sent in a long request
+	*/
+	CString DatatoSend;
+
 	CRadixEdit m_omBytes;
+
 	CComboBox m_omComboChannelUDS;
+
 	CRadixEdit m_omSourceAddress;
 	CRadixEdit m_omTargetAddress;
 	CRadixEdit m_omCanID;
@@ -57,7 +71,9 @@ public:
 	CButton m_omSendButton;
 
 	UINT TotalLength;
-	int ConsecutiveFrame;				 // It has the first Byte of the consecutive messages 0x20 , 0x21, 0x22, 0x23 
+
+	/** It has the first Byte of the consecutive messages 0x20 , 0x21, 0x22, 0x23  */ 
+	int ConsecutiveFrame;				 
 
 	static CUDSMainWnd* m_spodInstance;
 	UINT SourceAddress;
@@ -70,55 +86,133 @@ public:
    	mPSTXSELMSGDATA psTxCanMsgUds;
 	int TotalChannel;
 
-	//UINT_PTR m_nTimer;
-
-	//CWnd* pWndd;
-
 	CFont m_Font;
 
 	// Declaración de funciones 
 	(void)vInitializeUDSfFields();
-	(void)setValue();		
-	(void)CUDSMainWnd::OnBnClickedSendUD();   // Aún noc que parámetro ha de devolver
-	(void)CUDSMainWnd::OnBnClickedTesterPresent(); // Aún noc que parámetro ha de devolver
 
-	(void)CUDSMainWnd::OnEnChangeData();  //	Actualiza el DLC
+	/**
+	* This function is called to set in the UDS_Main_Window the value of the CanID editor Box
+	* It takes into account the Interface that has been chosen and the values os SA and TA
+	*/	   
+	(void)setValue();
+
+	/**
+	* This function is called by framework when user wants to Transmit a  message 
+	* it Filters the message so only the msg with a proper SA,TA and CANId can be sent
+	*/		 
+	(void)CUDSMainWnd::OnBnClickedSendUD();  
+
+	/**
+	* This function is called by the framework when the user has pressed the TesterPresent's 
+	* check box to start the timer to send the tester present message or to stops its sending
+	*/
+	(void)CUDSMainWnd::OnBnClickedTesterPresent(); 
+
+	/**
+	* This function in called by the framework when the user modifies the Databytes section in the
+	* Main Window. It's used to format the data inserted and to count the bytes and put the result
+	* in the DLC editor box. 
+	*/
+	(void)CUDSMainWnd::OnEnChangeData();
+	/**
+	* This function in called by the framework when the user modifies the SA section in the
+	* Main Window. It's used to set the the CAN identifier with the Source Address added  
+	*/	  
 	(void) CUDSMainWnd::OnEnChangeSA();
+
+	/**
+	* This function in called by the framework when the user modifies the SA section in the
+	* Main Window. 
+	*/	
 	(void) CUDSMainWnd::OnEnChangeTA();
-	(void) CUDSMainWnd::SendSimpleDiagnosticMessage(void/*mPSTXSELMSGDATA psTxCanMsgUds*/);
-	(int) CUDSMainWnd::SendFirstFrame(/*UINT TotalLength ,*/CString omByteStr, unsigned char abByteArr[],mPSTXSELMSGDATA psTxCanMsgUds, UDS_INTERFACE FInterface);
-	(void) CUDSMainWnd::SendContinuosFrames(/*UINT TotalLength ,*//*CString omByteStr,*/ unsigned char abByteArr[],mPSTXSELMSGDATA psTxCanMsgUds, UDS_INTERFACE FInterface);
+
+	/**
+	* This function is used to send any simple message 
+	*/ 
+	(void) CUDSMainWnd::SendSimpleDiagnosticMessage(void);
+
+	/**
+	\brief  This function sends the first Message of a long request
+	* This function prepares the structure of the first frame of a long request and it sends it. 
+	\param omByteStr contains the bytes that has to be sent in the first frame of the long request
+	\param abByteArr[] is the array where the data should be put to be sent
+	\param psTxCanMsgUds is the general structure of the message
+	\param				FInterface indicates the interface selected in the SettingsWnd
+	*/ 
+	(int) CUDSMainWnd::SendFirstFrame( CString omByteStr, unsigned char abByteArr[],mPSTXSELMSGDATA psTxCanMsgUds, UDS_INTERFACE FInterface);
+
+	/**
+	\brief It send continuos frame of a long request 
+	* This function sends the continuos frames of a long request. It sends several continuos messages 
+	* until the BSize parameter has been reached.
+	\param abByteArr[] is the array where the data should be put to be sent
+	\param	psTxCanMsgUds is the general structure of the message
+	\param	FInterface indicates the interface selected in the SettingsWnd
+	*/ 
+	(void) CUDSMainWnd::SendContinuosFrames(unsigned char abByteArr[],mPSTXSELMSGDATA psTxCanMsgUds, UDS_INTERFACE FInterface);
 	
+	/**
+	\brief It prepares the message to be sent
+	* This function is called by OnBnClickedSendUDS when the user needs to transmit a message
+	* It evaluates the message and divide it according to its lenght
+	\param	omByteStr contains the bytes that has to be sent in the first frame of the long request
+	\param	abByteArr[] is the array where the data should be put to be sent
+	\param	psTxCanMsgUds is the general structure of the message
+	\param	ByteArrLen is the length of the message to send	
+	*/	   
 	(void) CUDSMainWnd::PrepareDiagnosticMessage(CString omByteStr,mPSTXSELMSGDATA psTxCanMsgUds, unsigned char abByteArr[], UINT ByteArrLen /*, UDS_INTERFACE FInterface,UINT targetAddress*/ );
-	void CUDSMainWnd::PrepareFlowControl(void);
+	
+	/**
+	*This function is called to send the flow control because it has been received a long response	*/
+	(void) CUDSMainWnd::PrepareFlowControl(void);
 
 
 	CWnd* pomGetTxMsgViewPointers() const;
 
 	void vSetDILInterfacePtr(void* ptrDILIntrf);
 	void* pGetDILInterfacePtr();
+	/** 
+	\brief It updates  in the UDS Main Window the channels available
+	* This function is called from the Mainfrm when the user has changed the channel selection 
+	*/	 
 	void vUpdateChannelIDInfo();
+
 	static CUDSMainWnd* s_podGetUdsMsgManager();
-	 afx_msg void OnTimer(UINT_PTR nIDEvent);
-	 afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 
-	 CString initialEval(CString Data2Send );
+	/**
+	\brief it indicates if the tool should wait for a response from the ECU
+	* This funcition is called to evaluate if the sent message waits for
+	* a response or not (No Positive Response Required)	
+	*/
+	CString initialEval(CString Data2Send );
 
 
-
- //   static BOOL KillTimer(UINT_PTR nIDEvent);
-
-	UINT StartTimer(/*LPVOID nada*/);
+	/**
+	*This function is called to start the timer used to send the Tester Present
+	*/
+	UINT StartTimer();
 	
 private:
 	//CUdsMsgBlocksView* m_pomUDSMsgBlocksView;
 	CWnd* pomGetBlocksViewPointer() const;
-	// To Get Parent Window Pointer
+	
+	/// To Get Parent Window Pointer
 	CWnd* pomGetParentWindow() const;
 
-	(void) CUDSMainWnd::CalculateDiffTime(void);			//esta función debería estar implementada en otra clase
+	/**
+	\brief This function is used to calulate the difference in time between two specified moments  
+	* This funcition is called to calculate the difference in time 
+	* between two consecutive frames and to send them each STmin ms. 
+	*/
+	void CUDSMainWnd::CalculateDiffTime(void);	
+
+	/**
+	\brief This function is used by  CalculateDiffTime to get the current time
+	*/	
 	int  CUDSMainWnd::nCalculateCurrTime(BOOL bFromDIL);
-	/*static*/ 
 
 	// Dialog Data
 	enum { IDD = IDM_UDS };
@@ -126,14 +220,11 @@ private:
 protected:
 	virtual BOOL OnInitDialog();
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+
+	/**
+	\brief	This function transmita any simple message
+	*/
 	static UINT OnSendSelectedMsg(LPVOID pParam);
-
-
-	//static  UINT_PTR SetTimer(UINT_PTR nIDEvent, UINT nElapse,void (CALLBACK* lpfnTimer)(HWND, UINT, UINT_PTR, DWORD));
-	//static void OnTimer(UINT nIDEvent);
- //   static BOOL KillTimer(UINT_PTR nIDEvent);
-
-
 
 	DECLARE_MESSAGE_MAP()
 };
