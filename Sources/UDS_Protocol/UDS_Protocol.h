@@ -12,6 +12,9 @@
 #include "UDSMainWnd.h"
 #include "DataTypes/UDS_DataTypes.h"
 #include "include/struct_can.h"
+#include "UDSWnd_Defines.h"
+#include "UDS_Resource.h"
+
 
 extern bool FWaitFlow;
 extern int c_unPreviousTime;  //Deberia ir en otra clase para que sea más elegante

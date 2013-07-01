@@ -23,13 +23,16 @@ typedef struct
     BOOL            m_bShow;
 } INTERFACE_COMB;
 
-#define SIZE_INTERFACE_COMB    3
+#define SIZE_INTERFACE_COMB    4
 
 INTERFACE_COMB sg_asInterface[SIZE_INTERFACE_COMB] =
 {
     {INTERFACE_NORMAL_11,          " 11bits Normal",          TRUE},
     {INTERFACE_EXTENDED_11,        " 11bits Extended",        TRUE},
     {INTERFACE_NORMAL_ISO_29,      " 29bits Normal ISO",      TRUE},
+	{INTERFACE_NORMAL_J1939_29,    " 29bits Normal J1939",    TRUE},
+
+
 };
 
 INTERFACE_COMB sg_asSupportedInterface[SIZE_INTERFACE_COMB] =
@@ -37,6 +40,7 @@ INTERFACE_COMB sg_asSupportedInterface[SIZE_INTERFACE_COMB] =
     {INTERFACE_NORMAL_11,          " 11bits Normal",          TRUE},
     {INTERFACE_EXTENDED_11,        " 11bits Extended",        TRUE},
     {INTERFACE_NORMAL_ISO_29,      " 29bits Normal ISO",      TRUE},
+	{INTERFACE_NORMAL_J1939_29,    " 29bits Normal J1939",    TRUE},
 };
 
 
@@ -67,7 +71,7 @@ typedef struct
 STANDARD_COMB sg_asSupportedDiagStandard[SIZE_INTERFACE_COMB] =
 {
     {STANDARD_UDS,          "UDS(ISO 14229)",  TRUE},
-    {STANDARD_KWP2000,      "KPW2000",        TRUE},
+    //{STANDARD_KWP2000,      "KPW2000",        TRUE},
 };
 
 void vPopulateDiagnosticStandardComboBox(STANDARD_COMB sg_asInterface[], int nSize,
@@ -126,8 +130,8 @@ void CUDSSettingsWnd::DoDataExchange(CDataExchange* pDX)
 
 	DDX_Control(pDX, IDC_RES_CAN_ID, m_omRespCanID);
 	DDX_Text(pDX, IDC_RES_CAN_ID, StringRespCanID );
-	DDX_Control(pDX, IDC_REQ_BROADC_ADDRESS, m_omReqBroadcAddress);
-	DDX_Control(pDX, IDC_RES_BROADC_ADDRESS, m_omRespBroadcAddress);
+	//DDX_Control(pDX, IDC_REQ_BROADC_ADDRESS, m_omReqBroadcAddress);
+	//DDX_Control(pDX, IDC_RES_BROADC_ADDRESS, m_omRespBroadcAddress);
 
 	DDX_Control(pDX, IDC_REQ_BASE_ADRRESS, m_omReqBaseAddress);
 	DDX_Text(pDX, IDC_REQ_BASE_ADRRESS, StringReqBaseAddress );
@@ -318,7 +322,7 @@ void CUDSSettingsWnd::vInitializeUDSSettingsfFields(){
 	P2extended.vSetValue(2000);
 
 	vPopulateInterfaceComboBox(sg_asInterface, SIZE_INTERFACE_COMB, m_omInterface);
-	vPopulateDiagnosticStandardComboBox(sg_asSupportedDiagStandard,2, m_omStdDiag);
+	vPopulateDiagnosticStandardComboBox(sg_asSupportedDiagStandard,1, m_omStdDiag);	  //Changed to modify only the Diagnostic Standard box
     vPopulateFCLength(m_omFCLength);
 	m_omFCLength.SetCurSel(0);
 	m_omStdDiag.SetCurSel(0);		// Hace falta una función como "OnCbnSelchangeComboInterface()" que haga algo con la opción seleccionada en el Diagnostic Standard 
@@ -400,10 +404,10 @@ void CUDSSettingsWnd::OnCbnSelchangeComboInterface()
 		{
 			m_omReqCanID. LimitText(8);
    			m_omRespCanID. LimitText(8);  
-			m_omReqCanID.vSetValue(0x18C00000);		  
-			m_omRespCanID.vSetValue(0x18C00000);
-			StringRespCanID= "18C00000";
-			StringReqCanID= "18C00000";
+			m_omReqCanID.vSetValue(0x1BC00000);		  
+			m_omRespCanID.vSetValue(0x1BC00000);
+			StringRespCanID= "1BC00000";
+			StringReqCanID= "1BC00000";
 
 			m_omReqCanID.SetReadOnly(FALSE);		  
 			m_omRespCanID.SetReadOnly(FALSE);
@@ -420,7 +424,34 @@ void CUDSSettingsWnd::OnCbnSelchangeComboInterface()
 			//m_omCheckMsgDLC.SetCheck(BST_CHECKED);
 			//m_omFCLength.SetCurSel(1);
 		}
-		break;	}
+		break;
+		case INTERFACE_NORMAL_J1939_29:
+		{
+			m_omReqCanID. LimitText(8);
+   			m_omRespCanID. LimitText(8);  
+			m_omReqCanID.vSetValue(0x1BDA0000);		  
+			m_omRespCanID.vSetValue(0x1BDA0000);
+			StringRespCanID= "1BDA0000";
+			StringReqCanID= "1BDA0000";
+
+			m_omReqCanID.SetReadOnly(FALSE);		  
+			m_omRespCanID.SetReadOnly(FALSE);
+
+			m_omReqBaseAddress.SetReadOnly(TRUE);
+			m_omRespBaseAddress.SetReadOnly(TRUE);
+
+			m_omRespBroadcAddress.SetReadOnly(TRUE);
+			m_omReqBroadcAddress.SetReadOnly(TRUE);	
+
+			StringReqBaseAddress = " ";
+			StringRespBaseAddress = " ";
+
+			//m_omCheckMsgDLC.SetCheck(BST_CHECKED);
+			//m_omFCLength.SetCurSel(1);
+		}
+		break;
+
+	}
 	//OnChkbOnFlowC8();		// Para actalizar el tamaño del Flow Control
 	UpdateData(false);  // función para actualizar los datos 
 }
@@ -523,7 +554,42 @@ void CUDSSettingsWnd::OnBnOKPressed(){
 					UdsProtocolPtr->TargetAddress = 00;
 				}	
 			}
-			break;	}
+			break;
+		case INTERFACE_NORMAL_J1939_29:			//In this case I'm changing only the CANID
+			{
+				numberOfTaken=12;	
+				initialByte=0;
+				aux = 0; 
+
+				TempReq_CanID = m_omReqCanID.lGetValue();
+				TempResp_CanID = m_omRespCanID.lGetValue();
+
+				if ( StringReqCanID.GetLength() == 8  && TempReq_CanID <= 0x1FFFFFFF){
+					// Por ahora está incorrecto y debo pasarlo a bit y tomar los valores 
+					ReqCanID = strtoul(StringReqCanID, NULL, 16);
+					UdsProtocolPtr->TargetAddress = (ReqCanID & 0xFF00)>>8;
+					UdsProtocolPtr->MsgID = strtoul(StringReqCanID.Right(8), NULL, 16);	
+					UdsProtocolPtr->SourceAddress = (ReqCanID & 0xFF);
+				}else {				   // Isn't a valid CAN ID 
+
+					UdsProtocolPtr->SourceAddress = 0x00;
+					UdsProtocolPtr->MsgID = 0x000;
+					UdsProtocolPtr->TargetAddress = 00;
+				}	
+
+				if ( StringRespCanID.GetLength() == 8 && /*TempResp_CanID >= 0x01 &&*/ TempResp_CanID <= 0x1FFFFFFF){
+
+					respID = strtoul(StringRespCanID , NULL, 16);   // the StringRespCanID is updated only if the CanID is correct
+				}else {							// Isn't a valid CAN ID 
+					UdsProtocolPtr->SourceAddress = 0x00;
+					UdsProtocolPtr->MsgID = 0x000;
+					UdsProtocolPtr->TargetAddress = 00;
+				}	
+			}
+			break;
+
+
+	}
 
 	//To verify the legth of the simple messages   
 	fMsgSize = m_omCheckMsgDLC.GetCheck();  

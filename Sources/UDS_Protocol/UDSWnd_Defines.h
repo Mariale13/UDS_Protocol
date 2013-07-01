@@ -21,3 +21,4 @@ typedef msTXMSGDATA* mPSTXSELMSGDATA;
 #define MASK_TA_ID_29Bits					0x7FF	    //Fijado por ahora
 #define NEG_MASK_SA_ID_29Bits				0x1FC007FF	    //It's used tochange the SA from the Main Wnd
 #define NEG_MASK_TA_ID_29Bits				0x1FFFF800	    //It's used tochange the TA from the Main Wnd
+//#define NUM_BYTES_SHOWN_RESP                16

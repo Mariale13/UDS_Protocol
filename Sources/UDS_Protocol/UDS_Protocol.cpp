@@ -17,8 +17,6 @@
 #include "UDS_TimmingWnd.h"
 #include "UDS_Protocol.h"
 #include "include/struct_can.h"
-#include "UDSWnd_Defines.h"
-#include "UDS_Resource.h"
 
 
 //#include "PSDI_CAN/MsgContainer_CAN.h"
@@ -179,7 +177,7 @@ void CUDS_Protocol::Show_ResponseData(unsigned char psMsg[], unsigned char Datal
 			Lear++;
 			numberOfBytes++;
 
-			if (Lear == 16){
+			if (Lear == NUM_BYTES_SHOWN_RESP+1){
 				CString CstringNumberOfBytes;
 				CstringNumberOfBytes.Format("%d", numberOfBytes);
 				int i =4;
@@ -416,7 +414,20 @@ void CUDS_Protocol::UpdateFields()
 					omMainWnd->m_omTargetAddress.SetReadOnly(false);					
 					omMainWnd->m_omCanID.vSetValue(MsgID);
 				}
-				break;		}
+				break;
+			case INTERFACE_NORMAL_J1939_29:
+				{
+					omMainWnd->CanID = MsgID;
+					omMainWnd->m_omSourceAddress.SetLimitText(2);
+					omMainWnd->m_omTargetAddress.SetLimitText(2);
+					omMainWnd->m_omSourceAddress.vSetValue(SourceAddress);
+					omMainWnd->m_omTargetAddress.vSetValue(TargetAddress);
+					omMainWnd->m_omSourceAddress.SetReadOnly(false);
+					omMainWnd->m_omTargetAddress.SetReadOnly(false);					
+					omMainWnd->m_omCanID.vSetValue(MsgID);
+				}
+				break;		
+		}
 	}
 
 

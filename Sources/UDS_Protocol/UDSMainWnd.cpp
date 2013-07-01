@@ -329,6 +329,7 @@ void CUDSMainWnd::PrepareDiagnosticMessage(CString omByteStr,mPSTXSELMSGDATA psT
 	switch (fInterface){ 
 		case INTERFACE_NORMAL_11:
 			{
+				psTxCanMsgUds->m_psTxMsg->m_ucEXTENDED= FALSE;
 				ByteArrLen = ByteArrLen-1;
 				if (Result>7)							 // Long Request 
 				{
@@ -356,6 +357,7 @@ void CUDSMainWnd::PrepareDiagnosticMessage(CString omByteStr,mPSTXSELMSGDATA psT
 			break;
 		case INTERFACE_EXTENDED_11:
 			{
+				psTxCanMsgUds->m_psTxMsg->m_ucEXTENDED= FALSE;
 				ByteArrLen = ByteArrLen-2;
 				abByteArr[0] = TargetAddress;
 				if (Result>6){								// Long Request - The limit of a simple request for extended is 6 because the byte that contains the TA. 
@@ -383,6 +385,62 @@ void CUDSMainWnd::PrepareDiagnosticMessage(CString omByteStr,mPSTXSELMSGDATA psT
 					SendSimpleDiagnosticMessage();
 				} 
 			}		   
+			break;
+		case INTERFACE_NORMAL_ISO_29:
+			{
+				psTxCanMsgUds->m_psTxMsg->m_ucEXTENDED= TRUE;
+				ByteArrLen = ByteArrLen-1;
+				if (Result>7)							 // Long Request 
+				{
+					int f =SendFirstFrame(omByteStr,abByteArr,psTxCanMsgUds,fInterface );
+
+				} else {								 // Short request 
+					i_counter = (int) Result;	
+					abByteArr[0] = Result; 
+					Result++;							 // Result must be increased to make the size array bigger 
+					CString omTempByte;					 
+					while (omByteStr.GetLength())		
+					{
+						omTempByte = omByteStr.Right(NO_OF_CHAR_IN_BYTE);
+						abByteArr[i_counter--] = (BYTE)_tcstol(omTempByte, L'\0', 16);
+						omByteStr = omByteStr.Left(omByteStr.GetLength() - NO_OF_CHAR_IN_BYTE);
+					}
+					if(fMsgSize){
+					  psTxCanMsgUds->m_psTxMsg->m_ucDataLen = 8;
+					} else {
+					  psTxCanMsgUds->m_psTxMsg->m_ucDataLen = Result;
+					} 
+					SendSimpleDiagnosticMessage();
+				}									
+			}
+			break;
+		case INTERFACE_NORMAL_J1939_29:
+			{
+				psTxCanMsgUds->m_psTxMsg->m_ucEXTENDED= TRUE;
+				ByteArrLen = ByteArrLen-1;
+				if (Result>7)							 // Long Request 
+				{
+					int f =SendFirstFrame(omByteStr,abByteArr,psTxCanMsgUds,fInterface );
+
+				} else {								 // Short request 
+					i_counter = (int) Result;	
+					abByteArr[0] = Result; 
+					Result++;							 // Result must be increased to make the size array bigger 
+					CString omTempByte;					 
+					while (omByteStr.GetLength())		
+					{
+						omTempByte = omByteStr.Right(NO_OF_CHAR_IN_BYTE);
+						abByteArr[i_counter--] = (BYTE)_tcstol(omTempByte, L'\0', 16);
+						omByteStr = omByteStr.Left(omByteStr.GetLength() - NO_OF_CHAR_IN_BYTE);
+					}
+					if(fMsgSize){
+					  psTxCanMsgUds->m_psTxMsg->m_ucDataLen = 8;
+					} else {
+					  psTxCanMsgUds->m_psTxMsg->m_ucDataLen = Result;
+					} 
+					SendSimpleDiagnosticMessage();
+				}									
+			}
 			break;
 	} 
 	// If number of characters is an odd number, then number of bytes needed
@@ -421,7 +479,6 @@ void CUDSMainWnd::OnBnClickedSendUD(){
 		psTxCanMsgUds->m_psTxMsg = new STCAN_MSG[1];
 		if(psTxCanMsgUds->m_psTxMsg != NULL )
 		{
-			psTxCanMsgUds->m_psTxMsg->m_ucEXTENDED= FALSE;
 			psTxCanMsgUds->m_psTxMsg->m_ucRTR = FALSE;
 			psTxCanMsgUds->m_psTxMsg->m_ucChannel = (UCHAR)m_omComboChannelUDS.GetCurSel()+1;
 			psTxCanMsgUds->m_psTxMsg->m_unMsgID = (int)m_omCanID.lGetValue(); 
@@ -451,7 +508,7 @@ void  CUDSMainWnd::OnTimer(UINT_PTR nIDEvent){
 	//Envía TeserPresent 
 	if(nIDEvent ==ID_TIMER_TP && psTxCanMsgUds->m_psTxMsg != NULL) {		//Prepare the message
 
-		psTxCanMsgUds->m_psTxMsg->m_ucEXTENDED= FALSE;				// Initial Config
+		psTxCanMsgUds->m_psTxMsg->m_ucEXTENDED= TRUE/*FALSE*/;				// Initial Config
 		psTxCanMsgUds->m_psTxMsg->m_ucRTR = FALSE;
 		psTxCanMsgUds->m_psTxMsg->m_ucChannel = (UCHAR)m_omComboChannelUDS.GetCurSel()+1;
 		psTxCanMsgUds->m_psTxMsg->m_unMsgID = (int)m_omCanID.lGetValue(); 
@@ -609,11 +666,14 @@ void CUDSMainWnd::OnEnChangeTA(){
 	TargetAddress = m_omTargetAddress.lGetValue();
 	if(fInterface == INTERFACE_EXTENDED_11 ) respID = RespMsgID + TargetAddress;
 	if(fInterface == INTERFACE_NORMAL_ISO_29 ){
-		//int maria = (CanID&NEG_MASK_TA_ID_29Bits); 
-		//maria = TargetAddress & MASK_TA_ID_29Bits;
 		MsgID = (CanID&NEG_MASK_TA_ID_29Bits)+(TargetAddress & MASK_TA_ID_29Bits);
 		CanID = MsgID;
 		m_omCanID.vSetValue(MsgID);	
+	}else if( fInterface == INTERFACE_NORMAL_J1939_29){
+		MsgID = ((CanID & 0xFFFF00FF) + (TargetAddress<<8));
+		CanID = MsgID;
+		m_omCanID.vSetValue(MsgID);	
+
 	}
 }
 //________________________________________________________________________________________________________________________________________________________________
@@ -640,6 +700,14 @@ void CUDSMainWnd::setValue(){
 				m_omCanID.vSetValue(MsgID);
 
 			}break;
+   		case INTERFACE_NORMAL_J1939_29:
+			{	
+				MsgID = ((CanID & 0xFFFFFF00) + (SourceAddress));
+				CanID = MsgID;
+				m_omCanID.vSetValue(MsgID);
+
+			}break;
+
 	}	
 }
 //________________________________________________________________________________________________________________________________________________________________
@@ -704,7 +772,19 @@ void CUDSMainWnd::vInitializeUDSfFields(){
 
 					m_omCanID.vSetValue(CanID);
 				}
-				break;	}
+				break;	
+			case INTERFACE_NORMAL_J1939_29:
+				{
+					m_omSourceAddress.SetReadOnly(FALSE);
+					m_omTargetAddress.SetReadOnly(FALSE);
+					m_omSourceAddress.SetLimitText(2);
+					m_omTargetAddress.SetLimitText(2);
+
+					m_omCanID.vSetValue(CanID);
+				}
+				break;
+	
+	}
 
 	for (INT_PTR i = 0; i < TotalChannel; i++)						 //Esta clase debe ser cambiada al MainFrame. 
 	{
